@@ -10,8 +10,11 @@ abstract public class Minion extends Card{
 
     protected boolean isTank = false;
 
+    protected int health = 0;
+
     public Minion(CardInput cardInfo) {
         super(cardInfo);
+        health = cardInfo.getHealth();
     }
 
     public int getHasAttacker() {
@@ -36,5 +39,13 @@ abstract public class Minion extends Card{
 
     public void setTank(boolean tank) {
         isTank = tank;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
+    public int getHealth() {
+        return health;
     }
 }

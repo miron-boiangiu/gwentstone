@@ -9,5 +9,7 @@ abstract public class Card {
         this.cardInfo = cardInfo;
     }
 
-
+    public CardInput getCardInfo() {
+        return cardInfo;
+    }
 }
