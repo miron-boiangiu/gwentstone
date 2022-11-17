@@ -67,59 +67,27 @@ public class MainGame {
     }
 
     private void parseAction(ActionsInput action){
-        ObjectNode newNode = objectMapper.createObjectNode();
-        newNode.put("command", action.getCommand());
         if(action.getCommand().equals("getPlayerDeck")){
+            ObjectNode newNode = output.addObject();
+            newNode.put("command", action.getCommand());
             int requested_player_no = action.getPlayerIdx();
             newNode.put("playerIdx", requested_player_no);
-            Deck deck_to_output;
-            if(requested_player_no == 1){
-                deck_to_output = table.getPlayer1Deck();
-            }
-            else{
-                deck_to_output = table.getPlayer2Deck();
-            }
-            ArrayNode outputArray = newNode.putArray("output");
-            for(Card card: deck_to_output.getCards()){
-                ObjectNode outputCard = outputArray.addObject();
-                outputCard.put("mana", card.getCardInfo().getMana());
-                outputCard.put("description", card.getCardInfo().getDescription());
-                ArrayNode new_array_node_for_colors = outputCard.withArray("colors");
-                for(String color: card.getCardInfo().getColors()){
-                    new_array_node_for_colors.add(color);
-                }
-                outputCard.put("name", card.getCardInfo().getName());
-
-                if(card instanceof Minion){
-                    outputCard.put("health", ((Minion) card).getHealth());
-                    outputCard.put("attackDamage", card.getCardInfo().getAttackDamage());
-                }
-            }
+            Deck deck_to_output = requested_player_no == 1 ? table.getPlayer1Deck() : table.getPlayer2Deck();
+            deck_to_output.addOutputNode(newNode);
         }
-        if(action.getCommand().equals("getPlayerHero")){
+        else if(action.getCommand().equals("getPlayerHero")){
+            ObjectNode newNode = output.addObject();
+            newNode.put("command", action.getCommand());
             int player_id = action.getPlayerIdx();
-            Hero hero;
-            if(player_id == 1){
-                hero = table.getHero1();
-            }
-            else{
-                hero = table.getHero2();
-            }
+            Hero hero = player_id == 1 ? table.getHero1() : table.getHero2();
             newNode.put("playerIdx", player_id);
-            ObjectNode outputNode = newNode.putObject("output");
-            outputNode.put("mana", hero.getCardInfo().getMana());
-            outputNode.put("description", hero.getCardInfo().getDescription());
-            ArrayNode new_array_node_for_colors = outputNode.withArray("colors");
-            for(String color: hero.getCardInfo().getColors()){
-                new_array_node_for_colors.add(color);
-            }
-            outputNode.put("name", hero.getCardInfo().getName());
-            outputNode.put("health", hero.getHealth());
+            hero.addOutputNode(newNode);
         }
-        if(action.getCommand().equals("getPlayerTurn")){
+        else if(action.getCommand().equals("getPlayerTurn")){
+            ObjectNode newNode = output.addObject();
+            newNode.put("command", action.getCommand());
             newNode.put("output", getCurrentTurn());
         }
-        output.add(newNode);
     }
 
     public static MainGame getInstance(){

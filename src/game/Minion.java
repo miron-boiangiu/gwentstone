@@ -1,28 +1,36 @@
 package game;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.CardInput;
 
 abstract public class Minion extends Card{
 
     protected int frozen = 0;
 
-    protected int hasAttacker = 0;
+    protected int hasAttacked = 0;
 
     protected boolean isTank = false;
 
     protected int health = 0;
+
+    protected void computeOutput(ObjectNode outputNode){
+        super.computeOutput(outputNode);
+        outputNode.put("health", getHealth());
+        outputNode.put("attackDamage", getCardInfo().getAttackDamage());
+    }
 
     public Minion(CardInput cardInfo) {
         super(cardInfo);
         health = cardInfo.getHealth();
     }
 
-    public int getHasAttacker() {
-        return hasAttacker;
+    public int getHasAttacked() {
+        return hasAttacked;
     }
 
-    public void setHasAttacker(int hasAttacker) {
-        this.hasAttacker = hasAttacker;
+    public void setHasAttacked(int hasAttacked) {
+        this.hasAttacked = hasAttacked;
     }
 
     public int getFrozen() {
