@@ -6,13 +6,15 @@ import fileio.CardInput;
 
 abstract public class Minion extends Card{
 
-    protected int frozen = 0;
+    protected boolean frozen = false;
 
-    protected int hasAttacked = 0;
+    protected boolean hasAttacked = false;
 
     protected boolean isTank = false;
 
     protected int health = 0;
+
+    protected String row = "Front";
 
     protected void computeOutput(ObjectNode outputNode){
         super.computeOutput(outputNode);
@@ -23,21 +25,26 @@ abstract public class Minion extends Card{
     public Minion(CardInput cardInfo) {
         super(cardInfo);
         health = cardInfo.getHealth();
+        this.placeable = true;
     }
 
-    public int getHasAttacked() {
+    public String getRow() {
+        return row;
+    }
+
+    public boolean getHasAttacked() {
         return hasAttacked;
     }
 
-    public void setHasAttacked(int hasAttacked) {
+    public void setHasAttacked(boolean hasAttacked) {
         this.hasAttacked = hasAttacked;
     }
 
-    public int getFrozen() {
+    public boolean getFrozen() {
         return frozen;
     }
 
-    public void setFrozen(int frozen) {
+    public void setFrozen(boolean frozen) {
         this.frozen = frozen;
     }
 

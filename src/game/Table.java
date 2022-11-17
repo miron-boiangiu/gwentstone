@@ -1,5 +1,8 @@
 package game;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.util.ArrayList;
 
 public class Table {
@@ -14,6 +17,64 @@ public class Table {
 
     Hero hero1;
     Hero hero2;
+
+    ObjectNode addCardsInHandOutput(ObjectNode node,  int player_id){
+        ArrayNode outputNode = node.withArray("output");
+        ArrayList<Card> hand = player_id == 1 ? getPlayer1Hand() : getPlayer2Hand();
+        for(Card card: hand){
+            card.addOutputNode(outputNode);
+        }
+        return node;
+    }
+
+    ObjectNode addCardsOnTableOutput(ObjectNode node){
+        ArrayNode outputNode = node.withArray("output");
+        for(ArrayList<Card> row : tableRows){
+            ArrayNode rowNode = outputNode.addArray();
+            for(Card card: row){
+                card.addOutputNode(rowNode);
+            }
+        }
+        return node;
+    }
+
+    String playCard(int playerNo, int posOfCard){
+        Deck deck = playerNo == 1 ? player1Deck : player2Deck;
+        ArrayList<Card> hand = playerNo == 1 ? player1Hand : player2Hand;
+        Hero hero = playerNo == 1 ? hero1 : hero2;
+
+        Card cardToPlay = hand.get(posOfCard);
+        String row_placeable_on = "";
+        int row_no;
+        ArrayList<Card> row;
+
+        if(!cardToPlay.isPlaceable()){
+            return "Cannot place environment card on table.";
+        }
+        if(!hero.canAfford(cardToPlay.getCardInfo().getMana())){
+            System.out.println("Can't afford mana.");
+            return "Not enough mana to place card on table.";
+        }
+        if(cardToPlay instanceof Minion){
+            row_placeable_on = ((Minion) cardToPlay).getRow();
+        }
+        else{
+            return "Cannot place environment card on table.";
+        }
+        if(row_placeable_on.equals("Front")){
+            row_no = playerNo == 1 ? 2 : 1;
+        }else{
+            row_no = playerNo == 1 ? 3 : 0;
+        }
+        row = getTableRows()[row_no];
+        if(row.size() >= 5){
+            return "Cannot place card on table since row is full.";
+        }
+        hero.decreaseMana(cardToPlay.getCardInfo().getMana());
+        row.add(cardToPlay);
+        hand.remove(cardToPlay);
+        return null;
+    }
 
     void addCardToHand(int player_no){
         if(player_no == 1 && !player1Deck.isEmpty()){

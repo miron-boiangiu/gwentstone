@@ -7,6 +7,8 @@ import fileio.CardInput;
 abstract public class Card {
     protected CardInput cardInfo;
 
+    protected boolean placeable = false;
+
     public Card(CardInput cardInfo){
         this.cardInfo = cardInfo;
     }
@@ -20,6 +22,10 @@ abstract public class Card {
         ObjectNode outputNode = node.addObject();
         computeOutput(outputNode);
         return node;
+    }
+
+    public boolean isPlaceable(){
+        return placeable;
     }
 
     protected void computeOutput(ObjectNode outputNode){

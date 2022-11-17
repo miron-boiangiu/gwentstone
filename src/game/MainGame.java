@@ -24,6 +24,7 @@ public class MainGame {
     private Table table;
 
     public void start_game(Input inputData, ArrayNode output, ObjectMapper objectMapper){
+        System.out.println("--------------------------Start game--------------------------");
         this.output = output;
         this.inputData = inputData;
         this.objectMapper = objectMapper;
@@ -31,7 +32,9 @@ public class MainGame {
         int no_of_games = inputData.getGames().size();
 
         for(int i = 0; i<no_of_games; i++){
+            System.out.println("-- Start match");
             // Prepare the game
+            round_no = 0;
             GameInput current_game = inputData.getGames().get(i);
             table = new Table();
             int player1DeckNo = current_game.getStartGame().getPlayerOneDeckIdx();
@@ -67,7 +70,8 @@ public class MainGame {
     }
 
     private void parseAction(ActionsInput action){
-        if(action.getCommand().equals("getPlayerDeck")){
+        String command = action.getCommand();
+        if(command.equals("getPlayerDeck")){
             ObjectNode newNode = output.addObject();
             newNode.put("command", action.getCommand());
             int requested_player_no = action.getPlayerIdx();
@@ -75,7 +79,7 @@ public class MainGame {
             Deck deck_to_output = requested_player_no == 1 ? table.getPlayer1Deck() : table.getPlayer2Deck();
             deck_to_output.addOutputNode(newNode);
         }
-        else if(action.getCommand().equals("getPlayerHero")){
+        else if(command.equals("getPlayerHero")){
             ObjectNode newNode = output.addObject();
             newNode.put("command", action.getCommand());
             int player_id = action.getPlayerIdx();
@@ -83,10 +87,58 @@ public class MainGame {
             newNode.put("playerIdx", player_id);
             hero.addOutputNode(newNode);
         }
-        else if(action.getCommand().equals("getPlayerTurn")){
+        else if(command.equals("getPlayerTurn")){
             ObjectNode newNode = output.addObject();
             newNode.put("command", action.getCommand());
             newNode.put("output", getCurrentTurn());
+        }
+        else if(command.equals("endPlayerTurn")){
+            // Unfreeze frozen cards
+            round_no++;
+            currentTurn = 3 - currentTurn;
+            Hero hero = currentTurn == 1 ? table.getHero1() : table.getHero2();
+
+            System.out.println("- Ending turn, player 1 has mana: " + table.getHero1().getMana() + ", Player 2 has mana: " + table.getHero2().getMana());
+
+            if(round_no % 2 == 0){
+                System.out.println("[Debugging info] Should add mana: " + (1 + round_no/2));
+                table.getHero1().addMana(1 + round_no/2);
+                table.getHero2().addMana(1 + round_no/2);
+                table.addCardToHand(1);
+                table.addCardToHand(2);
+            }
+        }
+        else if(command.equals("placeCard")){
+            Hero hero = currentTurn == 1 ? table.getHero1() : table.getHero2();
+            int posOfCard = action.getHandIdx();
+            String return_value = table.playCard(currentTurn, posOfCard);
+
+            if(return_value != null){
+                ObjectNode newNode = output.addObject();
+                newNode.put("command", action.getCommand());
+                newNode.put("handIdx", posOfCard);
+                newNode.put("error", return_value);
+            }
+        }
+        else if(command.equals("getCardsInHand")){
+            ObjectNode newNode = output.addObject();
+            newNode.put("command", action.getCommand());
+            int player_id = action.getPlayerIdx();
+            newNode.put("playerIdx", player_id);
+            table.addCardsInHandOutput(newNode, player_id);
+        }
+        else if(command.equals("getPlayerMana")){
+            ObjectNode newNode = output.addObject();
+            newNode.put("command", action.getCommand());
+            int player_id = action.getPlayerIdx();
+            newNode.put("playerIdx", player_id);
+            Hero hero = player_id == 1 ? table.getHero1() : table.getHero2();
+            newNode.put("output", hero.getMana());
+        }
+        else if(command.equals("getCardsOnTable")){
+            ObjectNode newNode = output.addObject();
+            newNode.put("command", action.getCommand());
+            table.addCardsOnTableOutput(newNode);
         }
     }
 

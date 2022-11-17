@@ -7,5 +7,6 @@ public class Berserker extends Minion {
 
     public Berserker(CardInput cardInfo) {
         super(cardInfo);
+        this.row = "Back";
     }
 }
