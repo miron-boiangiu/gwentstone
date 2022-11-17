@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class Table {
 
-    protected ArrayList<Card>[] tableRows = new ArrayList[4];
+    protected ArrayList<Minion>[] tableRows = new ArrayList[4];
 
     protected Deck player1Deck;
     protected Deck player2Deck;
@@ -17,6 +17,17 @@ public class Table {
 
     Hero hero1;
     Hero hero2;
+
+    ObjectNode addEnvironmentCardsInHandOutput(ObjectNode node, int player_id){
+        ArrayNode outputNode = node.withArray("output");
+        ArrayList<Card> hand = player_id == 1 ? getPlayer1Hand() : getPlayer2Hand();
+        for(Card card: hand){
+            if(!card.isPlaceable()) {
+                card.addOutputNode(outputNode);
+            }
+        }
+        return node;
+    }
 
     ObjectNode addCardsInHandOutput(ObjectNode node,  int player_id){
         ArrayNode outputNode = node.withArray("output");
@@ -29,7 +40,7 @@ public class Table {
 
     ObjectNode addCardsOnTableOutput(ObjectNode node){
         ArrayNode outputNode = node.withArray("output");
-        for(ArrayList<Card> row : tableRows){
+        for(ArrayList<Minion> row : tableRows){
             ArrayNode rowNode = outputNode.addArray();
             for(Card card: row){
                 card.addOutputNode(rowNode);
@@ -38,15 +49,49 @@ public class Table {
         return node;
     }
 
-    String playCard(int playerNo, int posOfCard){
-        Deck deck = playerNo == 1 ? player1Deck : player2Deck;
+    public ObjectNode addCardAtPositionOutput(ObjectNode node, int x, int y){
+        if(x < 0 || 3 < x || getTableRows()[x].size()-1 < y || y < 0){
+            node.put("output", "No card available at that position.");
+        }
+        else {
+            getTableRows()[x].get(y).addOutputNode(node);
+        }
+        return node;
+    }
+
+    public String playEnvironmentCard(int playerNo, int posOfCard, int affectedRow){
+        ArrayList<Card> hand = playerNo == 1 ? player1Hand : player2Hand;
+        Hero hero = playerNo == 1 ? hero1 : hero2;
+        Card card_to_play = hand.get(posOfCard);
+        if(card_to_play.isPlaceable()){
+            return "Chosen card is not of type environment.";
+        }
+        if(!hero.canAfford(card_to_play.getCardInfo().getMana())){
+            return "Not enough mana to use environment card.";
+        }
+        if((playerNo == 1 && (affectedRow == 2 || affectedRow == 3)) ||
+                (playerNo == 2 && (affectedRow == 0 || affectedRow == 1))){
+            return "Chosen row does not belong to the enemy.";
+        }
+        if(getTableRows()[3-affectedRow].size() == 5){
+            return "Cannot steal enemy card since the player's row is full.";
+        }
+        if(card_to_play instanceof EnvironmentCard){
+            ((EnvironmentCard) card_to_play).useCardEffect(affectedRow);
+            hand.remove(card_to_play);
+        }
+        hero.decreaseMana(card_to_play.getCardInfo().getMana());
+        return null;
+    }
+
+    String placeCard(int playerNo, int posOfCard){
         ArrayList<Card> hand = playerNo == 1 ? player1Hand : player2Hand;
         Hero hero = playerNo == 1 ? hero1 : hero2;
 
         Card cardToPlay = hand.get(posOfCard);
         String row_placeable_on = "";
         int row_no;
-        ArrayList<Card> row;
+        ArrayList<Minion> row;
 
         if(!cardToPlay.isPlaceable()){
             return "Cannot place environment card on table.";
@@ -71,7 +116,7 @@ public class Table {
             return "Cannot place card on table since row is full.";
         }
         hero.decreaseMana(cardToPlay.getCardInfo().getMana());
-        row.add(cardToPlay);
+        row.add((Minion)cardToPlay);
         hand.remove(cardToPlay);
         return null;
     }
@@ -87,7 +132,7 @@ public class Table {
 
     public Table(){
         for(int i = 0; i<tableRows.length; i++){
-            tableRows[i] = new ArrayList<Card>();
+            tableRows[i] = new ArrayList<Minion>();
         }
     }
 
@@ -139,11 +184,11 @@ public class Table {
         return player2Deck;
     }
 
-    public ArrayList<Card>[] getTableRows() {
+    public ArrayList<Minion>[] getTableRows() {
         return tableRows;
     }
 
-    public void setTableRows(ArrayList<Card>[] tableRows) {
+    public void setTableRows(ArrayList<Minion>[] tableRows) {
         this.tableRows = tableRows;
     }
 }

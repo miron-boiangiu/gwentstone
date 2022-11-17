@@ -45,6 +45,8 @@ public class MainGame {
             ArrayList<CardInput> player2InputDeck = inputData.getPlayerTwoDecks().getDecks().get(player2DeckNo);
             table.setPlayer2Deck( new Deck(player2InputDeck));
 
+            System.out.println("Player 1 has deck no. "+ player1DeckNo + " and player 2 has deck no. " + player2DeckNo);
+
             int shuffle_seed = current_game.getStartGame().getShuffleSeed();
 
             Collections.shuffle(table.getPlayer1Deck().getCards(), new Random(shuffle_seed));
@@ -111,9 +113,11 @@ public class MainGame {
         else if(command.equals("placeCard")){
             Hero hero = currentTurn == 1 ? table.getHero1() : table.getHero2();
             int posOfCard = action.getHandIdx();
-            String return_value = table.playCard(currentTurn, posOfCard);
+            String return_value = table.placeCard(currentTurn, posOfCard);
+            System.out.println("Attempting to play card for player "+currentTurn);
 
             if(return_value != null){
+                System.out.println("Card placement failed.");
                 ObjectNode newNode = output.addObject();
                 newNode.put("command", action.getCommand());
                 newNode.put("handIdx", posOfCard);
@@ -134,11 +138,35 @@ public class MainGame {
             newNode.put("playerIdx", player_id);
             Hero hero = player_id == 1 ? table.getHero1() : table.getHero2();
             newNode.put("output", hero.getMana());
-        }
-        else if(command.equals("getCardsOnTable")){
+        } else if(command.equals("getCardsOnTable")){
             ObjectNode newNode = output.addObject();
             newNode.put("command", action.getCommand());
             table.addCardsOnTableOutput(newNode);
+        } else if (command.equals("getEnvironmentCardsInHand")) {
+            ObjectNode newNode = output.addObject();
+            int player_id = action.getPlayerIdx();
+            newNode.put("playerIdx", player_id);
+            newNode.put("command", action.getCommand());
+            table.addEnvironmentCardsInHandOutput(newNode, player_id);
+        } else if (command.equals("useEnvironmentCard")) {
+            int card_pos = action.getHandIdx();
+            int affected_row = action.getAffectedRow();
+            String outputString = table.playEnvironmentCard(currentTurn, card_pos, affected_row);
+            if(outputString != null){
+                ObjectNode newNode = output.addObject();
+                newNode.put("command", action.getCommand());
+                newNode.put("handIdx", card_pos);
+                newNode.put("affectedRow", affected_row);
+                newNode.put("error", outputString);
+            }
+        } else if (command.equals("getCardAtPosition")) {
+            ObjectNode newNode = output.addObject();
+            newNode.put("command", action.getCommand());
+            int x = action.getX();
+            int y = action.getY();
+            newNode.put("x", x);
+            newNode.put("y", y);
+            table.addCardAtPositionOutput(newNode, x, y);
         }
     }
 
@@ -160,5 +188,9 @@ public class MainGame {
 
     public void setRound_no(int round_no) {
         this.round_no = round_no;
+    }
+
+    public Table getTable() {
+        return table;
     }
 }
