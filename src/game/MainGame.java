@@ -24,7 +24,6 @@ public class MainGame {
     private Table table;
 
     public void start_game(Input inputData, ArrayNode output, ObjectMapper objectMapper){
-        System.out.println("--------------------------Start game--------------------------");
         this.output = output;
         this.inputData = inputData;
         this.objectMapper = objectMapper;
@@ -32,7 +31,6 @@ public class MainGame {
         int no_of_games = inputData.getGames().size();
 
         for(int i = 0; i<no_of_games; i++){
-            System.out.println("-- Start match");
             // Prepare the game
             round_no = 0;
             GameInput current_game = inputData.getGames().get(i);
@@ -44,8 +42,6 @@ public class MainGame {
             int player2DeckNo = current_game.getStartGame().getPlayerTwoDeckIdx();
             ArrayList<CardInput> player2InputDeck = inputData.getPlayerTwoDecks().getDecks().get(player2DeckNo);
             table.setPlayer2Deck( new Deck(player2InputDeck));
-
-            System.out.println("Player 1 has deck no. "+ player1DeckNo + " and player 2 has deck no. " + player2DeckNo);
 
             int shuffle_seed = current_game.getStartGame().getShuffleSeed();
 
@@ -67,6 +63,7 @@ public class MainGame {
             ArrayList<ActionsInput> actions = current_game.getActions();
             for(ActionsInput action: actions){
                 parseAction(action);
+                removeDeadCards();
             }
         }
     }
@@ -99,25 +96,20 @@ public class MainGame {
             round_no++;
             currentTurn = 3 - currentTurn;
             Hero hero = currentTurn == 1 ? table.getHero1() : table.getHero2();
-
-            System.out.println("- Ending turn, player 1 has mana: " + table.getHero1().getMana() + ", Player 2 has mana: " + table.getHero2().getMana());
-
             if(round_no % 2 == 0){
-                System.out.println("[Debugging info] Should add mana: " + (1 + round_no/2));
                 table.getHero1().addMana(1 + round_no/2);
                 table.getHero2().addMana(1 + round_no/2);
                 table.addCardToHand(1);
                 table.addCardToHand(2);
             }
+            unfreezeCardsForPlayer(currentTurn);
         }
         else if(command.equals("placeCard")){
             Hero hero = currentTurn == 1 ? table.getHero1() : table.getHero2();
             int posOfCard = action.getHandIdx();
-            String return_value = table.placeCard(currentTurn, posOfCard);
-            System.out.println("Attempting to play card for player "+currentTurn);
+            String return_value = placeCard(currentTurn, posOfCard);
 
             if(return_value != null){
-                System.out.println("Card placement failed.");
                 ObjectNode newNode = output.addObject();
                 newNode.put("command", action.getCommand());
                 newNode.put("handIdx", posOfCard);
@@ -151,7 +143,7 @@ public class MainGame {
         } else if (command.equals("useEnvironmentCard")) {
             int card_pos = action.getHandIdx();
             int affected_row = action.getAffectedRow();
-            String outputString = table.playEnvironmentCard(currentTurn, card_pos, affected_row);
+            String outputString = playEnvironmentCard(currentTurn, card_pos, affected_row);
             if(outputString != null){
                 ObjectNode newNode = output.addObject();
                 newNode.put("command", action.getCommand());
@@ -168,6 +160,88 @@ public class MainGame {
             newNode.put("y", y);
             table.addCardAtPositionOutput(newNode, x, y);
         }
+    }
+
+    private void removeDeadCards(){
+        for(int i = 0; i<4; i++){
+            ArrayList<Minion> minions_to_remove = new ArrayList<>();
+            for(Minion minion: table.getTableRows()[i]){
+                if(minion.getHealth() <= 0){
+                    minions_to_remove.add(minion);
+                }
+            }
+            table.getTableRows()[i].removeIf(minions_to_remove::contains);
+        }
+    }
+
+    private void unfreezeCardsForPlayer(int player_no){
+        int starting_row = (4 - player_no*2);
+        for(int i = starting_row; i<=starting_row+1; i++){
+            for(Minion minion: table.getTableRows()[i]){
+                minion.defreezeOneLevel();
+            }
+        }
+    }
+
+    private String playEnvironmentCard(int playerNo, int posOfCard, int affectedRow){
+        ArrayList<Card> hand = playerNo == 1 ? table.getPlayer1Hand() : table.getPlayer2Hand();
+        Hero hero = playerNo == 1 ? table.getHero1() : table.getHero2();
+        Card card_to_play = hand.get(posOfCard);
+        if(card_to_play.isPlaceable()){
+            return "Chosen card is not of type environment.";
+        }
+        if(!hero.canAfford(card_to_play.getCardInfo().getMana())){
+            return "Not enough mana to use environment card.";
+        }
+        if((playerNo == 1 && (affectedRow == 2 || affectedRow == 3)) ||
+                (playerNo == 2 && (affectedRow == 0 || affectedRow == 1))){
+            return "Chosen row does not belong to the enemy.";
+        }
+        if(table.getTableRows()[3-affectedRow].size() == 5){
+            return "Cannot steal enemy card since the player's row is full.";
+        }
+        if(card_to_play instanceof EnvironmentCard){
+            ((EnvironmentCard) card_to_play).useCardEffect(affectedRow);
+            hand.remove(card_to_play);
+        }
+        hero.decreaseMana(card_to_play.getCardInfo().getMana());
+        return null;
+    }
+
+    private String placeCard(int playerNo, int posOfCard){
+        ArrayList<Card> hand = playerNo == 1 ? table.getPlayer1Hand() : table.getPlayer2Hand();
+        Hero hero = playerNo == 1 ? table.getHero1() : table.getHero2();
+
+        Card cardToPlay = hand.get(posOfCard);
+        String row_placeable_on = "";
+        int row_no;
+        ArrayList<Minion> row;
+
+        if(!cardToPlay.isPlaceable()){
+            return "Cannot place environment card on table.";
+        }
+        if(!hero.canAfford(cardToPlay.getCardInfo().getMana())){
+            return "Not enough mana to place card on table.";
+        }
+        if(cardToPlay instanceof Minion){
+            row_placeable_on = ((Minion) cardToPlay).getRow();
+        }
+        else{
+            return "Cannot place environment card on table.";
+        }
+        if(row_placeable_on.equals("Front")){
+            row_no = playerNo == 1 ? 2 : 1;
+        }else{
+            row_no = playerNo == 1 ? 3 : 0;
+        }
+        row = table.getTableRows()[row_no];
+        if(row.size() >= 5){
+            return "Cannot place card on table since row is full.";
+        }
+        hero.decreaseMana(cardToPlay.getCardInfo().getMana());
+        row.add((Minion)cardToPlay);
+        hand.remove(cardToPlay);
+        return null;
     }
 
     public static MainGame getInstance(){
