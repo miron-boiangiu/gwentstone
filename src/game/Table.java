@@ -38,6 +38,11 @@ public class Table {
         return node;
     }
 
+    public boolean playerHasTank(int player_no){
+        int player_first_row = 4 - 2*player_no;
+        return (rowHasTank(player_first_row) || rowHasTank( player_first_row + 1));
+    }
+
     ObjectNode addCardsOnTableOutput(ObjectNode node){
         ArrayNode outputNode = node.withArray("output");
         for(ArrayList<Minion> row : tableRows){

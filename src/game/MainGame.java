@@ -18,20 +18,19 @@ public class MainGame {
     private ObjectMapper objectMapper;
     private static final MainGame instance = new MainGame();
     private int currentTurn;
-
     private int round_no = 0;
-
     private Table table;
+    private boolean gameIsOver = false;
 
     public void start_game(Input inputData, ArrayNode output, ObjectMapper objectMapper){
         this.output = output;
         this.inputData = inputData;
         this.objectMapper = objectMapper;
-
         int no_of_games = inputData.getGames().size();
 
         for(int i = 0; i<no_of_games; i++){
             // Prepare the game
+            setGameIsOver(false);
             round_no = 0;
             GameInput current_game = inputData.getGames().get(i);
             table = new Table();
@@ -62,8 +61,18 @@ public class MainGame {
             // Start parsing the players' actions after finishing the preparations
             ArrayList<ActionsInput> actions = current_game.getActions();
             for(ActionsInput action: actions){
+                if(getGameIsOver() && !ActionConstants.DEBUGGING_COMMANDS.contains(action.getCommand())){
+                    continue;
+                }
                 parseAction(action);
                 removeDeadCards();
+                if(!getGameIsOver() && isAnyHeroDead()){
+                    setGameIsOver(true);
+                    String winner_no = table.getHero1().getHealth() == 0 ? "two" : "one";
+                    ObjectNode winnerNode = output.addObject();
+                    String output_string = String.format("Player %s killed the enemy hero.", winner_no);
+                    winnerNode.put("gameEnded", output_string);
+                }
             }
         }
     }
@@ -182,7 +191,42 @@ public class MainGame {
                 attacked_coords.put("y", attacked_y);
                 newNode.put("error", error);
             }
+        } else if (command.equals("cardUsesAbility")) {
+            int attacker_x = action.getCardAttacker().getX();
+            int attacker_y = action.getCardAttacker().getY();
+            int attacked_x = action.getCardAttacked().getX();
+            int attacked_y = action.getCardAttacked().getY();
+            Minion attacker = table.getTableRows()[attacker_x].get(attacker_y);
+            String error = attacker.useSpecialAbility(attacked_x, attacked_y);
+            if(error != null){
+                ObjectNode newNode = output.addObject();
+                newNode.put("command", action.getCommand());
+                ObjectNode attacker_coords = newNode.putObject("cardAttacker");
+                attacker_coords.put("x", attacker_x);
+                attacker_coords.put("y", attacker_y);
+                ObjectNode attacked_coords = newNode.putObject("cardAttacked");
+                attacked_coords.put("x", attacked_x);
+                attacked_coords.put("y", attacked_y);
+                newNode.put("error", error);
+            }
+        } else if (command.equals("useAttackHero")){
+            int attacker_x = action.getCardAttacker().getX();
+            int attacker_y = action.getCardAttacker().getY();
+            Minion attacker = table.getTableRows()[attacker_x].get(attacker_y);
+            String error = attacker.attackHero();
+            if(error != null){
+                ObjectNode newNode = output.addObject();
+                newNode.put("command", action.getCommand());
+                ObjectNode attacker_coords = newNode.putObject("cardAttacker");
+                attacker_coords.put("x", attacker_x);
+                attacker_coords.put("y", attacker_y);
+                newNode.put("error", error);
+            }
         }
+    }
+
+    private boolean isAnyHeroDead(){
+        return table.getHero1().getHealth() == 0 || table.getHero2().getHealth() == 0;
     }
 
     private void removeDeadCards(){
@@ -296,5 +340,13 @@ public class MainGame {
 
     public Table getTable() {
         return table;
+    }
+
+    public void setGameIsOver(boolean gameIsOver) {
+        this.gameIsOver = gameIsOver;
+    }
+
+    public boolean getGameIsOver(){
+        return this.gameIsOver;
     }
 }
