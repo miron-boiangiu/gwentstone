@@ -49,6 +49,18 @@ public class Table {
         return node;
     }
 
+    ObjectNode addFrozenCardsOnTableOutput(ObjectNode node){
+        ArrayNode outputNode = node.withArray("output");
+        for(ArrayList<Minion> row : tableRows){
+            for(Minion card: row){
+                if(card.isFrozen()) {
+                    card.addOutputNode(outputNode);
+                }
+            }
+        }
+        return node;
+    }
+
     public ObjectNode addCardAtPositionOutput(ObjectNode node, int x, int y){
         if(x < 0 || 3 < x || getTableRows()[x].size()-1 < y || y < 0){
             node.put("output", "No card available at that position.");

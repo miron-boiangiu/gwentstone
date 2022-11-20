@@ -159,6 +159,10 @@ public class MainGame {
             newNode.put("x", x);
             newNode.put("y", y);
             table.addCardAtPositionOutput(newNode, x, y);
+        } else if (command.equals("getFrozenCardsOnTable")){
+            ObjectNode newNode = output.addObject();
+            newNode.put("command", action.getCommand());
+            table.addFrozenCardsOnTableOutput(newNode);
         }
     }
 
@@ -186,6 +190,9 @@ public class MainGame {
     private String playEnvironmentCard(int playerNo, int posOfCard, int affectedRow){
         ArrayList<Card> hand = playerNo == 1 ? table.getPlayer1Hand() : table.getPlayer2Hand();
         Hero hero = playerNo == 1 ? table.getHero1() : table.getHero2();
+        if(posOfCard+1 > hand.size()){
+            return null;
+        }
         Card card_to_play = hand.get(posOfCard);
         if(card_to_play.isPlaceable()){
             return "Chosen card is not of type environment.";
@@ -193,18 +200,14 @@ public class MainGame {
         if(!hero.canAfford(card_to_play.getCardInfo().getMana())){
             return "Not enough mana to use environment card.";
         }
-        if((playerNo == 1 && (affectedRow == 2 || affectedRow == 3)) ||
-                (playerNo == 2 && (affectedRow == 0 || affectedRow == 1))){
-            return "Chosen row does not belong to the enemy.";
-        }
-        if(table.getTableRows()[3-affectedRow].size() == 5){
-            return "Cannot steal enemy card since the player's row is full.";
-        }
         if(card_to_play instanceof EnvironmentCard){
-            ((EnvironmentCard) card_to_play).useCardEffect(affectedRow);
-            hand.remove(card_to_play);
+            String error_string = ((EnvironmentCard) card_to_play).useCardEffect(affectedRow);
+            if(error_string == null){
+                hand.remove(card_to_play);
+                hero.decreaseMana(card_to_play.getCardInfo().getMana());
+            }
+            return error_string;
         }
-        hero.decreaseMana(card_to_play.getCardInfo().getMana());
         return null;
     }
 

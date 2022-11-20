@@ -56,6 +56,10 @@ abstract public class Minion extends Card{
         this.frozen = frozen;
     }
 
+    public boolean isFrozen(){
+        return(getFrozen() != 0);
+    }
+
     public boolean isTank() {
         return isTank;
     }

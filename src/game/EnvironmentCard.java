@@ -11,5 +11,5 @@ public abstract class EnvironmentCard extends Card{
         super(cardInfo);
     }
 
-    abstract public void useCardEffect(int affectedRow);
+    abstract public String useCardEffect(int affectedRow);
 }
