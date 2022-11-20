@@ -22,7 +22,7 @@ public class Winterfell extends EnvironmentCard {
         }
 
         for(Minion minion: table.getTableRows()[affectedRow]){
-            minion.setFrozen(2);
+            minion.setFrozen(1);
         }
         return null;
     }

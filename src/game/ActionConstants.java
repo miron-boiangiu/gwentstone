@@ -15,6 +15,7 @@ public final class ActionConstants {
                                                                                              "getEnvironmentCardsInHand",
                                                                                              "getFrozenCardsOnTable",
                                                                                              "getTotalGamesPlayed",
-                                                                                             "getPlayerOneWins"));
+                                                                                             "getPlayerOneWins",
+                                                                                             "getPlayerTwoWins"));
     private ActionConstants(){}
 }

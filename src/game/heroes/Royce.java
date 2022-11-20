@@ -32,7 +32,7 @@ public class Royce extends Hero {
             }
         }
         if(minion_to_freeze != null) {
-            minion_to_freeze.setFrozen(2);
+            minion_to_freeze.setFrozen(1);
             decreaseMana(getCardInfo().getMana());
             setHasAttacked(true);
         }

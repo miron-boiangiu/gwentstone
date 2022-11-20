@@ -22,6 +22,8 @@ public class MainGame {
     private Table table;
     private boolean gameIsOver = false;
 
+    private GameStats gameStats = new GameStats();
+
     public void start_game(Input inputData, ArrayNode output, ObjectMapper objectMapper){
         this.output = output;
         this.inputData = inputData;
@@ -67,14 +69,22 @@ public class MainGame {
                 parseAction(action);
                 removeDeadCards();
                 if(!getGameIsOver() && isAnyHeroDead()){
+                    gameStats.incrementPlayedGamesNo();
                     setGameIsOver(true);
-                    String winner_no = table.getHero1().getHealth() == 0 ? "two" : "one";
+                    String winner_no = table.getHero1().getHealth() <= 0 ? "two" : "one";
+                    if(winner_no.equals("one")){
+                        gameStats.incrementPlayerOneWins();
+                    }
+                    else {
+                        gameStats.incrementPlayerTwoWins();
+                    }
                     ObjectNode winnerNode = output.addObject();
                     String output_string = String.format("Player %s killed the enemy hero.", winner_no);
                     winnerNode.put("gameEnded", output_string);
                 }
             }
         }
+        gameStats = new GameStats();
     }
 
     private void parseAction(ActionsInput action){
@@ -231,11 +241,23 @@ public class MainGame {
                 newNode.put("affectedRow", row);
                 newNode.put("error", error);
             }
+        } else if (command.equals("getTotalGamesPlayed")) {
+            ObjectNode newNode = output.addObject();
+            newNode.put("command", action.getCommand());
+            newNode.put("output", getGameStats().getPlayedGames());
+        } else if (command.equals("getPlayerOneWins")) {
+            ObjectNode newNode = output.addObject();
+            newNode.put("command", action.getCommand());
+            newNode.put("output", getGameStats().getPlayerOneWins());
+        } else if (command.equals("getPlayerTwoWins")) {
+            ObjectNode newNode = output.addObject();
+            newNode.put("command", action.getCommand());
+            newNode.put("output", getGameStats().getPlayerTwoWins());
         }
     }
 
     private boolean isAnyHeroDead(){
-        return table.getHero1().getHealth() == 0 || table.getHero2().getHealth() == 0;
+        return table.getHero1().getHealth() <= 0 || table.getHero2().getHealth() <= 0;
     }
 
     private void removeDeadCards(){
@@ -359,5 +381,13 @@ public class MainGame {
 
     public boolean getGameIsOver(){
         return this.gameIsOver;
+    }
+
+    public GameStats getGameStats() {
+        return gameStats;
+    }
+
+    public void setGameStats(GameStats gameStats) {
+        this.gameStats = gameStats;
     }
 }
