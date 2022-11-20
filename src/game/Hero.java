@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.CardInput;
 
-public class Hero extends Card{
+abstract public class Hero extends Card{
     private int health = 30;
     private int mana = 1;
+
+    private boolean hasAttacked = false;
     public Hero(CardInput cardInfo) {
         super(cardInfo);
     }
@@ -15,6 +17,8 @@ public class Hero extends Card{
         super.computeOutput(outputNode);
         outputNode.put("health", getHealth());
     }
+
+    public abstract String useAbility(int row);
 
     public boolean canAfford(int mana){
         return this.mana >= mana;
@@ -40,5 +44,13 @@ public class Hero extends Card{
 
     public void setHealth(int health) {
         this.health = health;
+    }
+
+    public boolean hasAttacked() {
+        return hasAttacked;
+    }
+
+    public void setHasAttacked(boolean hasAttacked) {
+        this.hasAttacked = hasAttacked;
     }
 }

@@ -101,8 +101,8 @@ public class MainGame {
             newNode.put("output", getCurrentTurn());
         }
         else if(command.equals("endPlayerTurn")){
-            // Unfreeze frozen cards
             round_no++;
+            unfreezeCardsForPlayer(currentTurn);
             currentTurn = 3 - currentTurn;
             Hero hero = currentTurn == 1 ? table.getHero1() : table.getHero2();
             if(round_no % 2 == 0){
@@ -111,7 +111,6 @@ public class MainGame {
                 table.addCardToHand(1);
                 table.addCardToHand(2);
             }
-            unfreezeCardsForPlayer(currentTurn);
             resetHasAttackedForAllCards();
         }
         else if(command.equals("placeCard")){
@@ -222,6 +221,16 @@ public class MainGame {
                 attacker_coords.put("y", attacker_y);
                 newNode.put("error", error);
             }
+        } else if (command.equals("useHeroAbility")){
+            int row = action.getAffectedRow();
+            Hero hero = getCurrentTurn() == 1 ? table.getHero1() : table.getHero2();
+            String error = hero.useAbility(row);
+            if(error != null){
+                ObjectNode newNode = output.addObject();
+                newNode.put("command", action.getCommand());
+                newNode.put("affectedRow", row);
+                newNode.put("error", error);
+            }
         }
     }
 
@@ -245,7 +254,7 @@ public class MainGame {
         int starting_row = (4 - player_no*2);
         for(int i = starting_row; i<=starting_row+1; i++){
             for(Minion minion: table.getTableRows()[i]){
-                minion.defreezeOneLevel();
+                minion.setFrozen(0);
             }
         }
     }
@@ -311,6 +320,8 @@ public class MainGame {
     }
 
     private void resetHasAttackedForAllCards(){
+        table.getHero2().setHasAttacked(false);
+        table.getHero1().setHasAttacked(false);
         for(int i = 0; i<4; i++){
             for(Minion minion: table.getTableRows()[i]){
                 minion.setHasAttacked(false);
