@@ -7,5 +7,6 @@ public class Goliath extends Minion {
 
     public Goliath(CardInput cardInfo) {
         super(cardInfo);
+        isTank = true;
     }
 }

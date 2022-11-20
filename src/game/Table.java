@@ -61,6 +61,15 @@ public class Table {
         return node;
     }
 
+    public boolean rowHasTank(int row_no){
+        for(Minion minion: getTableRows()[row_no]){
+            if(minion.isTank()){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public ObjectNode addCardAtPositionOutput(ObjectNode node, int x, int y){
         if(x < 0 || 3 < x || getTableRows()[x].size()-1 < y || y < 0){
             node.put("output", "No card available at that position.");

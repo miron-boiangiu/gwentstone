@@ -103,6 +103,7 @@ public class MainGame {
                 table.addCardToHand(2);
             }
             unfreezeCardsForPlayer(currentTurn);
+            resetHasAttackedForAllCards();
         }
         else if(command.equals("placeCard")){
             Hero hero = currentTurn == 1 ? table.getHero1() : table.getHero2();
@@ -163,6 +164,24 @@ public class MainGame {
             ObjectNode newNode = output.addObject();
             newNode.put("command", action.getCommand());
             table.addFrozenCardsOnTableOutput(newNode);
+        } else if (command.equals("cardUsesAttack")) {
+            int attacker_x = action.getCardAttacker().getX();
+            int attacker_y = action.getCardAttacker().getY();
+            int attacked_x = action.getCardAttacked().getX();
+            int attacked_y = action.getCardAttacked().getY();
+            Minion attacker = table.getTableRows()[attacker_x].get(attacker_y);
+            String error = attacker.attack(attacked_x, attacked_y);
+            if(error != null){
+                ObjectNode newNode = output.addObject();
+                newNode.put("command", action.getCommand());
+                ObjectNode attacker_coords = newNode.putObject("cardAttacker");
+                attacker_coords.put("x", attacker_x);
+                attacker_coords.put("y", attacker_y);
+                ObjectNode attacked_coords = newNode.putObject("cardAttacked");
+                attacked_coords.put("x", attacked_x);
+                attacked_coords.put("y", attacked_y);
+                newNode.put("error", error);
+            }
         }
     }
 
@@ -245,6 +264,14 @@ public class MainGame {
         row.add((Minion)cardToPlay);
         hand.remove(cardToPlay);
         return null;
+    }
+
+    private void resetHasAttackedForAllCards(){
+        for(int i = 0; i<4; i++){
+            for(Minion minion: table.getTableRows()[i]){
+                minion.setHasAttacked(false);
+            }
+        }
     }
 
     public static MainGame getInstance(){
