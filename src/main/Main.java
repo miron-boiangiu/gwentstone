@@ -73,7 +73,7 @@ public final class Main {
 
         MainGame game = MainGame.getInstance();
         game.start_game(inputData, output, objectMapper);
-        
+
         ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
         objectWriter.writeValue(new File(filePath2), output);
     }

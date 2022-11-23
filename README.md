@@ -1,44 +1,52 @@
+# GwentStone
 
+## The idea behind this homework
 
-# Tema POO  - GwentStone
+This homework's whole point was to learn about abstraction, inheritance
+and how to organize code as to make it as readable as possible, while
+also shortening the time it takes to develop a product.
 
-<div align="center"><img src="https://tenor.com/view/witcher3-gif-9340436.gif" width="500px"></div>
+## How the code is organized
 
-#### Assignment Link: [https://ocw.cs.pub.ro/courses/poo-ca-cd/teme/tema](https://ocw.cs.pub.ro/courses/poo-ca-cd/teme/tema)
+My code has the following important classes:
 
+- MainGame - The game's main logic is here, where all the game's
+components come together to form the game, and where the players'
+actions are parsed and their respective methods are called;
+- Table - Where the heroes, the decks, players' hands and the cards
+that have been played are kept in, so pretty much where all the cards
+are kept for the duration of the game;
+- Card - An abstract class which defines the shared characteristics
+of all types of cards: environment and minions. An important thing to
+note here is that the card information given as input is stored inside
+this class, instead of copying everything for no good reason;
+- CardFactory - There's a class for each card, because they have
+different abilities and characteristics, so the right type of card
+is instantiated here based on the input and then returned;
+- Deck - This is where the cards of players are kept before they end
+up in their hands;
+- Minion - Extends Card, adding health, attack damage and other
+attributes that only minions have, and environment cards don't;
+- EnvironmentCard - Also extends Card, but contains the abstract method
+that applies an effect on a row;
+- Hero - Contains the remaining health of the hero, its remaining mana
+and all the data read from the input.
 
-## Skel Structure
+## The ideas behind some implementation decisions
 
-* src/
-  * checker/ - checker files
-  * fileio/ - contains classes used to read data from the json files
-  * main/
-      * Main - the Main class runs the checker on your implementation. Add the entry point to your implementation in it. Run Main to test your implementation from the IDE or from command line.
-      * Test - run the main method from Test class with the name of the input file from the command line and the result will be written
-        to the out.txt file. Thus, you can compare this result with ref.
-* input/ - contains the tests in JSON format
-* ref/ - contains all reference output for the tests in JSON format
-
-## Tests
-
-1. test01_game_start - 3p
-2. test02_place_card - 4p
-3. test03_place_card_invalid - 4p
-4. test04_use_env_card - 4p
-5. test05_use_env_card_invalid - 4p
-6. test06_attack_card - 4p
-7. test07_attack_card_invalid - 4p
-8. test08_use_card_ability - 4p
-9. test09_use_card_ability_invalid -4p
-10. test10_attack_hero - 4p
-11. test11_attack_hero_invalid - 4p
-12. test12_use_hero_ability_1 - 4p
-13. test13_use_hero_ability_2 - 4p
-14. test14_use_hero_ability_1_invalid - 4p
-15. test15_use_hero_ability_2_invalid - 4p
-16. test16_multiple_games_valid - 5p
-17. test17_multiple_games_invalid - 6p
-18. test18_big_game - 10p
-
-
-<div align="center"><img src="https://tenor.com/view/homework-time-gif-24854817.gif" width="500px"></div>
+- There is a separate Class for each card type (Berserker, Firestorm,
+The Cursed One, etc.) so as to try and generalize them: if all
+special cards have a method called useSpecialAbility, in which each of
+their specific abilities is implemented, then I can just call that
+method for a card that I know has a special ability instead of making
+a bunch of ifs in a single class that they all share.
+- The MainGame class follows the Singleton design pattern, because it
+makes sense that there only one instance of it is running at all times
+and because it makes its usage easier in the other classes. One might
+argue that making it Singleton and getting its instance in the other
+classes creates undesirable dependencies that make single method
+testing more difficult, and, while I agree, these two disadvantages
+were tradeoffs I knew about and knowingly implemented, in exchange for
+faster development time, since testing didn't check particular
+components separately, but instead tested the behaviour of the whole
+ensemble.
