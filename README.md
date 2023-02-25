@@ -1,52 +1,184 @@
-# GwentStone
+<div id="top"></div>
 
-## The idea behind this homework
+[![MIT License][license-shield]][license-url]
+![Homework][homework-shield]
 
-This homework's whole point was to learn about abstraction, inheritance
-and how to organize code as to make it as readable as possible, while
-also shortening the time it takes to develop a product.
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://github.com/miron-boiangiu/gwentstone">
+    <img src="images/logo.png" alt="Logo" width="120" height="120">
+  </a>
 
-## How the code is organized
+<h3 align="center">Gwentstone</h3>
 
-My code has the following important classes:
+  <p align="center">
+    First Object Oriented Programming homework, a 1v1 card game inspired by Hearthstone.
+    <br />
+    <br />
+    <a href="https://github.com/miron-boiangiu/gwentstone/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/miron-boiangiu/gwentstone/issues">Request Feature</a>
+  </p>
+</div>
 
-- MainGame - The game's main logic is here, where all the game's
-components come together to form the game, and where the players'
-actions are parsed and their respective methods are called;
-- Table - Where the heroes, the decks, players' hands and the cards
-that have been played are kept in, so pretty much where all the cards
-are kept for the duration of the game;
-- Card - An abstract class which defines the shared characteristics
-of all types of cards: environment and minions. An important thing to
-note here is that the card information given as input is stored inside
-this class, instead of copying everything for no good reason;
-- CardFactory - There's a class for each card, because they have
-different abilities and characteristics, so the right type of card
-is instantiated here based on the input and then returned;
-- Deck - This is where the cards of players are kept before they end
-up in their hands;
-- Minion - Extends Card, adding health, attack damage and other
-attributes that only minions have, and environment cards don't;
-- EnvironmentCard - Also extends Card, but contains the abstract method
-that applies an effect on a row;
-- Hero - Contains the remaining health of the hero, its remaining mana
-and all the data read from the input.
 
-## The ideas behind some implementation decisions
 
-- There is a separate Class for each card type (Berserker, Firestorm,
-The Cursed One, etc.) so as to try and generalize them: if all
-special cards have a method called useSpecialAbility, in which each of
-their specific abilities is implemented, then I can just call that
-method for a card that I know has a special ability instead of making
-a bunch of ifs in a single class that they all share.
-- The MainGame class follows the Singleton design pattern, because it
-makes sense that there only one instance of it is running at all times
-and because it makes its usage easier in the other classes. One might
-argue that making it Singleton and getting its instance in the other
-classes creates undesirable dependencies that make single method
-testing more difficult, and, while I agree, these two disadvantages
-were tradeoffs I knew about and knowingly implemented, in exchange for
-faster development time, since testing didn't check particular
-components separately, but instead tested the behaviour of the whole
-ensemble.
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#built-with">Built With</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+      </ul>
+    </li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ol>
+</details>
+
+
+
+<!-- ABOUT THE PROJECT -->
+## About The Project
+
+Coded in Java, this project is a base for a card game in which players build their decks and fight 1v1, in a turn-based system. I say base because it lacks an interface implementation, this is basically just the back-end.
+
+<a href="https://ocw.cs.pub.ro/courses/poo-ca-cd/teme/tema">Assignment link.</a>
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+
+### Built With
+
+* [Java](https://www.java.com/en/)
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+
+<!-- GETTING STARTED -->
+## Getting Started
+
+
+
+### Prerequisites
+
+* A JDK version ([OpenJDK](https://openjdk.org/)/[Oracle JDK](https://www.oracle.com))
+* [Lombok](https://projectlombok.org/)
+* [Jackson](https://github.com/FasterXML/jackson)
+
+Note: both Lombok and Jackson have a version included in the repository.
+
+### Compilation
+
+I recommend using a build system to compile the source to bytecode and run it:
+* [Maven](https://maven.apache.org/)
+* [Gradle](https://gradle.org/)
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+
+<!-- USAGE EXAMPLES -->
+## Usage
+
+As of right now, the project supports simulating an entire game between two players, from the perspective of one of them. The inputs of both players are read from a JSON file and executed if valid.
+
+<div align="center">
+<img src="images/table.png" height="500">
+</div>
+
+The game supports custom decks, with 11 types of cards being implemented so far, 8 minion cards and 3 environment cards. The players also have to choose a hero, having 4 to choose from.
+
+Cards are not all equal, some having special abilities or being tanks (if the opponent has a tank on the table, it has to be destroyed before being allowed to attack other cards or the opponent's hero).
+
+Heroes also have special abilities they can play if they have enough mana.
+
+Exact card values are avoided because they can change frequently from game updates.
+
+General game rules:
+* Players can play new cards if they have enough mana to do so
+* Both players get a new card everytime the second player's turn ends
+* Both players get increased mana everytime the second player's turn ends
+* A player can end a turn at anytime
+* Minions that have been played can attack once per turn
+* Environment cards don't stay on the table (aren't minions), but can have an effect for the cost of mana
+* Heroes can use their special ability once per turn, if they have enough mana to do so
+* The game ends when one of the heroes reaches 0 health
+
+Current minion cards:
+* Sentinel
+* Berserker
+* Goliath (Tank)
+* Warden (Tank)
+* Miraj (Special ability)
+* The Ripper (Special ability)
+* Disciple (Special ability)
+* The Cursed One (Special ability)
+
+Current environment cards:
+* Firestorm
+* Winterfell
+* Heart Hound
+
+Current heroes to choose from:
+* Lord Royce
+* Empress Thorina
+* King Mudface
+* General Kocioraw
+
+Note: In case you find anything unclear or too vague, please consult the assignment link and README_OLD.md .
+
+<br>
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+
+<!-- LICENSE -->
+## License
+
+Distributed under the MIT License. See `LICENSE.txt` for more information.
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+
+<!-- CONTACT -->
+## Contact
+
+Boiangiu Victor-Miron - miron.boiangiu@gmail.com
+
+Project Link: [https://github.com/miron-boiangiu/gwentstone](https://github.com/miron-boiangiu/gwentstone)
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[contributors-shield]: https://img.shields.io/github/contributors/miron-boiangiu/gwentstone.svg?style=for-the-badge
+[contributors-url]:https://github.com/miron-boiangiu/gwentstone/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/miron-boiangiu/gwentstone.svg?style=for-the-badge
+[forks-url]:https://github.com/miron-boiangiu/gwentstone/network/members
+[stars-shield]: https://img.shields.io/github/stars/miron-boiangiu/gwentstone.svg?style=for-the-badge
+[stars-url]:https://github.com/miron-boiangiu/gwentstone/stargazers
+[issues-shield]: https://img.shields.io/github/issues/miron-boiangiu/gwentstone.svg?style=for-the-badge
+[issues-url]:https://github.com/miron-boiangiu/gwentstone/issues
+[license-shield]: https://img.shields.io/github/license/miron-boiangiu/gwentstone.svg?style=for-the-badge
+[license-url]:https://github.com/miron-boiangiu/gwentstone/blob/main/LICENSE
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/miron-boiangiu
+[product-screenshot]: images/screenshot.png
+[homework-shield]: https://img.shields.io/badge/UPB-Homework-%23deeb34?style=for-the-badge
+
